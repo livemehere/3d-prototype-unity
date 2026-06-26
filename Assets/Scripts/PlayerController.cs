@@ -1,9 +1,13 @@
 using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using TMPro;
 
 public class PlayerController : MonoBehaviour
 {
+    public int score;
+    public TextMeshProUGUI scoreText;
+    public TextMeshProUGUI finishText;
 
     [SerializeField] private float speed;
     [SerializeField] private float jumpForce;
@@ -15,9 +19,28 @@ public class PlayerController : MonoBehaviour
     private Rigidbody rb;
     private Vector2 input;
 
+    void SetScore(int value)
+    {
+        score += value;
+        scoreText.text = "Score: " + score;
+        
+        if (score >= 9)
+        {
+            finishText.gameObject.SetActive(true);
+            GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
+            foreach(GameObject e in enemies)
+            {
+                Destroy(e);
+            }
+        }
+    }
+
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
+        score = 0;
+        
+        finishText.gameObject.SetActive(false);
     }
 
     private void FixedUpdate()
@@ -56,6 +79,21 @@ public class PlayerController : MonoBehaviour
     {
         if (!isGrounded) return;
         rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Item"))
+        {
+            SetScore(1);
+        }
+
+        if (other.CompareTag("Enemy"))
+        {
+            Destroy(gameObject);
+            finishText.text = "Lose";
+            finishText.gameObject.SetActive(true); 
+        }
     }
 }
 
