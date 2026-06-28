@@ -9,9 +9,12 @@ public class PlayerController : MonoBehaviour
     public TextMeshProUGUI finishText;
 
     [SerializeField] private Animator animator;
-    [SerializeField] private float speed;
-    [SerializeField] private float jumpForce;
+    [SerializeField] private float speed = 2;
+    [SerializeField] private float sprintSpeed = 10;
+    [SerializeField] private float jumpForce = 50;
     [SerializeField] private bool isGrounded;
+    [SerializeField] private bool canControl = true;
+    [SerializeField] private bool isSprinting;
     [SerializeField] private Transform groundCheck;
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private Transform cameraTransform;
@@ -24,17 +27,15 @@ public class PlayerController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         score = 0;
-        isGrounded = false;
-
         finishText.gameObject.SetActive(false);
     }
 
     private void Update()
     {
-        Debug.Log(rb.linearVelocity.y);
-        animator.SetFloat("speed", input.magnitude);
-        animator.SetFloat("verticalSpeed", isGrounded ? 0 : rb.linearVelocity.y);
+        var targetSpeed = input.magnitude * (isSprinting ? 2f : 1f);
+        animator.SetFloat("speed", targetSpeed, 0.1f, Time.deltaTime);
 
+        animator.SetFloat("verticalSpeed", isGrounded ? 0 : rb.linearVelocity.y);
         animator.SetBool("isGrounded", isGrounded);
     }
 
@@ -46,24 +47,30 @@ public class PlayerController : MonoBehaviour
             groundLayer
         );
 
-        var forward = cameraTransform.forward;
-        var right = cameraTransform.right;
-
-        forward.y = 0;
-        right.y = 0;
-
-        forward.Normalize();
-        right.Normalize();
-
-        var move = forward * input.y + right * input.x;
-
-        if (move.sqrMagnitude > 0.001f)
+        if (canControl)
         {
-            var targetRotation = Quaternion.LookRotation(move);
-            rb.MoveRotation(targetRotation);
+            var forward = cameraTransform.forward;
+            var right = cameraTransform.right;
+
+            forward.y = 0;
+            right.y = 0;
+
+            forward.Normalize();
+            right.Normalize();
+
+            var move = forward * input.y + right * input.x;
+
+            if (move.sqrMagnitude > 0.001f)
+            {
+                var targetRotation = Quaternion.LookRotation(move);
+                rb.MoveRotation(targetRotation);
+            }
+
+            var curSpeed = isSprinting ? sprintSpeed : speed;
+
+            rb.MovePosition(rb.position + move * (curSpeed * Time.fixedDeltaTime));
         }
 
-        rb.MovePosition(rb.position + move * (speed * Time.fixedDeltaTime));
 
         // falling gravity
         rb.AddForce(
@@ -108,10 +115,27 @@ public class PlayerController : MonoBehaviour
         input = value.Get<Vector2>().normalized;
     }
 
+    private void OnSprint(InputValue value)
+    {
+        var sprintValue = value.Get<float>();
+
+        isSprinting = sprintValue > 0.5f;
+    }
+
     private void OnJump()
     {
-        if (!isGrounded) return;
+        if (!isGrounded || !canControl) return;
         rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
         animator.SetTrigger("jumpTrigger");
+    }
+
+    public void OnLandStarted()
+    {
+        canControl = false;
+    }
+
+    public void OnLandEnded()
+    {
+        canControl = true;
     }
 }
