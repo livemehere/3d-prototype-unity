@@ -8,12 +8,14 @@ public class PlayerController : MonoBehaviour
     public TextMeshProUGUI scoreText;
     public TextMeshProUGUI finishText;
 
+    [SerializeField] private Animator animator;
     [SerializeField] private float speed;
     [SerializeField] private float jumpForce;
     [SerializeField] private bool isGrounded;
     [SerializeField] private Transform groundCheck;
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private Transform cameraTransform;
+
     private Vector2 input;
 
     private Rigidbody rb;
@@ -25,6 +27,15 @@ public class PlayerController : MonoBehaviour
         isGrounded = false;
 
         finishText.gameObject.SetActive(false);
+    }
+
+    private void Update()
+    {
+        Debug.Log(rb.linearVelocity.y);
+        animator.SetFloat("speed", input.magnitude);
+        animator.SetFloat("verticalSpeed", isGrounded ? 0 : rb.linearVelocity.y);
+
+        animator.SetBool("isGrounded", isGrounded);
     }
 
     private void FixedUpdate()
@@ -101,5 +112,6 @@ public class PlayerController : MonoBehaviour
     {
         if (!isGrounded) return;
         rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+        animator.SetTrigger("jumpTrigger");
     }
 }
