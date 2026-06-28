@@ -53,6 +53,18 @@ public class PlayerController : MonoBehaviour
         }
 
         rb.MovePosition(rb.position + move * (speed * Time.fixedDeltaTime));
+
+        // falling gravity
+        rb.AddForce(
+            Physics.gravity * 1.5f,
+            ForceMode.Acceleration
+        );
+    }
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(groundCheck.position, 0.1f);
     }
 
     private void OnTriggerEnter(Collider other)
