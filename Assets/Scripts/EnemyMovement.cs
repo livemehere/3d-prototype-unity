@@ -12,7 +12,7 @@ public class EnemyMovement : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
         
     }
-
+ 
     // Update is called once per frame
     void Update()
     {
