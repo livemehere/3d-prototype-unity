@@ -4,28 +4,49 @@ using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
+    // Timers
+    
+    [Header("Game")]
     public int score;
     public TextMeshProUGUI scoreText;
     public TextMeshProUGUI finishText;
 
-    [SerializeField] private Animator animator;
-    [SerializeField] private float speed = 2;
-    [SerializeField] private float sprintSpeed = 10;
-    [SerializeField] private float jumpForce = 50;
+    [Header("Movement")] 
+    public float speed = 0f;
+    public float moveSpeed = 2f;
+    public float sprintSpeed = 10f;
+    public float rotationSmoothTime = 0.2f;
+    public float speedSmoothTime = 0.1f;
+
+    [Header("Jump")]
+    public float coyoteTime = 0.2f;
+    public float jumpHeight = 2f;
+    public int jumpCount = 1;
+    public int jumpCounter;
+    private float coyoteTimer;
+
+    [Header("Force")]
+    public float gravity = -15.0f;
+    public float verticalVelocity;
+    public float fallTimeout = 0.15f;
+    private float fallTimer;
     [SerializeField] private bool isGrounded;
-    [SerializeField] private bool canControl = true;
+    [SerializeField] private bool wasGrounded;
     [SerializeField] private bool isSprinting;
     [SerializeField] private Transform groundCheck;
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private Transform cameraTransform;
 
     private Vector2 input;
+    
+    private Animator animator;
+    private CharacterController controller;
 
-    private Rigidbody rb;
 
-    private void Awake()
+    private void Start()
     {
-        rb = GetComponent<Rigidbody>();
+        controller = GetComponent<CharacterController>();
+        animator = GetComponent<Animator>();
         score = 0;
         finishText.gameObject.SetActive(false);
     }
@@ -35,48 +56,13 @@ public class PlayerController : MonoBehaviour
         var targetSpeed = input.magnitude * (isSprinting ? 2f : 1f);
         animator.SetFloat("speed", targetSpeed, 0.1f, Time.deltaTime);
 
-        animator.SetFloat("verticalSpeed", isGrounded ? 0 : rb.linearVelocity.y);
+        // animator.SetFloat("verticalSpeed", isGrounded ? 0 : rb.linearVelocity.y);
+
+        isGrounded = Physics.CheckSphere(groundCheck.position, 0.25f, groundLayer,  QueryTriggerInteraction.Ignore);
         animator.SetBool("isGrounded", isGrounded);
-    }
-
-    private void FixedUpdate()
-    {
-        isGrounded = Physics.CheckSphere(
-            groundCheck.position,
-            0.1f,
-            groundLayer
-        );
-
-        if (canControl)
-        {
-            var forward = cameraTransform.forward;
-            var right = cameraTransform.right;
-
-            forward.y = 0;
-            right.y = 0;
-
-            forward.Normalize();
-            right.Normalize();
-
-            var move = forward * input.y + right * input.x;
-
-            if (move.sqrMagnitude > 0.001f)
-            {
-                var targetRotation = Quaternion.LookRotation(move);
-                rb.MoveRotation(targetRotation);
-            }
-
-            var curSpeed = isSprinting ? sprintSpeed : speed;
-
-            rb.MovePosition(rb.position + move * (curSpeed * Time.fixedDeltaTime));
-        }
-
-
-        // falling gravity
-        rb.AddForce(
-            Physics.gravity * 1.5f,
-            ForceMode.Acceleration
-        );
+        
+        JumpAndGravity();
+        Move();
     }
 
     private void OnDrawGizmos()
@@ -122,20 +108,105 @@ public class PlayerController : MonoBehaviour
         isSprinting = sprintValue > 0.5f;
     }
 
+    private void ApplyJump()
+    {
+        verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
+        animator.SetBool("isJumping", true);
+    }
+
     private void OnJump()
     {
-        if (!isGrounded || !canControl) return;
-        rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-        animator.SetTrigger("jumpTrigger");
+        if (jumpCounter == jumpCount)
+        {
+           // first jump 
+           if (coyoteTimer > 0f)
+           {
+               ApplyJump();
+               coyoteTimer = 0f;
+               jumpCounter -= 1;
+           }
+        } else if (jumpCounter > 0)
+        {
+            // remain jump
+            ApplyJump();
+            jumpCounter -= 1;
+        }
     }
 
-    public void OnLandStarted()
+    private void Move()
     {
-        canControl = false;
+        // user input
+        var forward = cameraTransform.forward;
+        var right = cameraTransform.right;
+        forward.y = 0;
+        right.y = 0;
+        forward.Normalize();
+        right.Normalize();
+        var move = forward * input.y + right * input.x;
+
+        // turn 
+        if (move != Vector3.zero)
+        {
+            var targetRotation = Quaternion.LookRotation(move);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSmoothTime);
+        }
+
+        // move
+        var targetSpeed = isSprinting ? sprintSpeed : moveSpeed;
+        if (move == Vector3.zero)
+        {
+            targetSpeed = 0f;
+        }
+        speed = Mathf.Lerp(speed, targetSpeed, speedSmoothTime);
+        controller.Move( (move * (speed * Time.deltaTime)) + new Vector3(0f, verticalVelocity, 0f) * Time.deltaTime);
     }
 
-    public void OnLandEnded()
+    private void JumpAndGravity()
     {
-        canControl = true;
+        if (isGrounded)
+        {
+            // prevent reset count just jumped
+            if (wasGrounded)
+            {
+                jumpCounter = jumpCount;
+            }
+            
+            coyoteTimer = coyoteTime;
+            fallTimer = fallTimeout;
+            animator.SetBool("isFalling", false);
+            animator.SetBool("isJumping", false);
+
+           if (verticalVelocity < 0f)
+           {
+               verticalVelocity = -2.0f;
+           }
+           
+           wasGrounded = false;
+        }
+        else
+        {
+            wasGrounded = true;
+            if (coyoteTimer > 0f)
+            {
+                coyoteTimer -= Time.deltaTime;
+            }
+            
+            // for slop
+            if (fallTimer > 0f)
+            {
+                fallTimer -= Time.deltaTime;
+            }
+            else
+            {
+                animator.SetBool("isFalling", true);
+            }
+        }
+        
+
+        
+        
+        // apply gravity
+        verticalVelocity += gravity * Time.deltaTime; 
+        
     }
 }
