@@ -11,8 +11,8 @@ public class PlayerController : MonoBehaviour
     public TextMeshProUGUI scoreText;
     public TextMeshProUGUI finishText;
 
-    [Header("Movement")] 
-    public float speed = 0f;
+    [Header("Movement")]
+    public float speed;
     public float moveSpeed = 2f;
     public float sprintSpeed = 10f;
     public float rotationSmoothTime = 0.2f;
@@ -22,26 +22,29 @@ public class PlayerController : MonoBehaviour
     public float coyoteTime = 0.2f;
     public float jumpHeight = 2f;
     public int jumpCount = 1;
-    public int jumpCounter;
+    private int jumpCounter;
     private float coyoteTimer;
 
-    [Header("Force")]
+    [Header("Gravity")]
     public float gravity = -15.0f;
-    public float verticalVelocity;
     public float fallTimeout = 0.15f;
+    private float verticalVelocity;
     private float fallTimer;
-    [SerializeField] private bool isGrounded;
-    [SerializeField] private bool wasGrounded;
-    [SerializeField] private bool isSprinting;
+    private bool isGrounded;
+    private bool wasGrounded;
+    
+    // drag and drop
     [SerializeField] private Transform groundCheck;
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private Transform cameraTransform;
 
+    // user input state
     private Vector2 input;
+    private bool isSprinting;
     
+    // search from self
     private Animator animator;
     private CharacterController controller;
-
 
     private void Start()
     {
@@ -53,15 +56,8 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        var targetSpeed = input.magnitude * (isSprinting ? 2f : 1f);
-        animator.SetFloat("speed", targetSpeed, 0.1f, Time.deltaTime);
-
-        // animator.SetFloat("verticalSpeed", isGrounded ? 0 : rb.linearVelocity.y);
-
-        isGrounded = Physics.CheckSphere(groundCheck.position, 0.25f, groundLayer,  QueryTriggerInteraction.Ignore);
-        animator.SetBool("isGrounded", isGrounded);
-        
-        JumpAndGravity();
+        GroundCheck();
+        GravityAndVerticalState();
         Move();
     }
 
@@ -111,7 +107,6 @@ public class PlayerController : MonoBehaviour
     private void ApplyJump()
     {
         verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
-        animator.SetBool("isJumping", true);
     }
 
     private void OnJump()
@@ -124,6 +119,7 @@ public class PlayerController : MonoBehaviour
                ApplyJump();
                coyoteTimer = 0f;
                jumpCounter -= 1;
+               animator.SetTrigger("jumpTrigger");
            }
         } else if (jumpCounter > 0)
         {
@@ -133,8 +129,18 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    private void GroundCheck()
+    {
+        isGrounded = Physics.CheckSphere(groundCheck.position, 0.25f, groundLayer,  QueryTriggerInteraction.Ignore);
+        animator.SetBool("isGrounded", isGrounded);
+    }
+
     private void Move()
     {
+        // animate blending
+        var animateTargetSpeed = input.magnitude * (isSprinting ? 2f : 1f);
+        animator.SetFloat("speed", animateTargetSpeed, 0.1f, Time.deltaTime);
+        
         // user input
         var forward = cameraTransform.forward;
         var right = cameraTransform.right;
@@ -161,7 +167,7 @@ public class PlayerController : MonoBehaviour
         controller.Move( (move * (speed * Time.deltaTime)) + new Vector3(0f, verticalVelocity, 0f) * Time.deltaTime);
     }
 
-    private void JumpAndGravity()
+    private void GravityAndVerticalState()
     {
         if (isGrounded)
         {
@@ -174,7 +180,6 @@ public class PlayerController : MonoBehaviour
             coyoteTimer = coyoteTime;
             fallTimer = fallTimeout;
             animator.SetBool("isFalling", false);
-            animator.SetBool("isJumping", false);
 
            if (verticalVelocity < 0f)
            {
@@ -202,11 +207,7 @@ public class PlayerController : MonoBehaviour
             }
         }
         
-
-        
-        
         // apply gravity
         verticalVelocity += gravity * Time.deltaTime; 
-        
     }
 }
