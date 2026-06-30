@@ -461,21 +461,7 @@ ModelImporter:
       mirror: 0
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
-      events:
-      - time: 0
-        functionName: StartLanding
-        data: 
-        objectReferenceParameter: {fileID: 11500000, guid: b4c278bd2fd0b405584cb5c2cd83d1a5, type: 3}
-        floatParameter: 0
-        intParameter: 0
-        messageOptions: 0
-      - time: 0.9075472
-        functionName: EndLanding
-        data: 
-        objectReferenceParameter: {fileID: 11500000, guid: b4c278bd2fd0b405584cb5c2cd83d1a5, type: 3}
-        floatParameter: 0
-        intParameter: 0
-        messageOptions: 0
+      events: []
       transformMask: []
       maskType: 3
       maskSource: {instanceID: 0}

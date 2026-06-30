@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 public class CameraController : MonoBehaviour
 {
     [SerializeField] private Transform cameraTransform;
-    [SerializeField] private Vector3 offset = new(0f, 3f, -6f);
+    [SerializeField] private Vector3 offset = new(1, 2, -5);
     [SerializeField] private float mouseSensitivity = 0.2f;
     [SerializeField] private float maxPitch = 60f;
     [SerializeField] private float minPitch = -20f;
@@ -29,7 +29,7 @@ public class CameraController : MonoBehaviour
         var rotatedOffset = rotation * offset;
 
         cameraTransform.position = transform.position + rotatedOffset;
-        cameraTransform.LookAt(transform.position);
+        cameraTransform.rotation = rotation;
     }
 
     private void OnLook(InputValue value)

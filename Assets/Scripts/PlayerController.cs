@@ -38,6 +38,10 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Transform groundCheck;
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private Transform cameraTransform;
+    
+    [Header("Aim")]
+    [SerializeField] private LayerMask aimLayer;
+    [SerializeField] private Transform aimTarget;
 
     // user input state
     private Vector2 input;
@@ -60,6 +64,14 @@ public class PlayerController : MonoBehaviour
         GroundCheck();
         GravityAndVerticalState();
         Move();
+
+        Vector2 screenCenterPoint = new Vector2(Screen.width / 2, Screen.height / 2);
+        Ray ray = Camera.main.ScreenPointToRay(screenCenterPoint);
+        if (Physics.Raycast(ray, out RaycastHit hit, 999f, aimLayer))
+        {
+           aimTarget.position = hit.point; 
+        }
+
     }
 
     private void OnDrawGizmos()
