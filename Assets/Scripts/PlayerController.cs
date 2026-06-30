@@ -36,6 +36,7 @@ public class PlayerController : MonoBehaviour
 
     [Header("Aim")] [SerializeField] private LayerMask aimLayer;
     [SerializeField] private Transform aimTarget;
+    [SerializeField] private float shootRange = 999f;
     private bool isAiming;
 
     [Header("Weapon")] public GameObject startWeaponPrefab;
@@ -83,9 +84,13 @@ public class PlayerController : MonoBehaviour
 
         Vector2 screenCenterPoint = new Vector2(Screen.width / 2, Screen.height / 2);
         Ray ray = Camera.main.ScreenPointToRay(screenCenterPoint);
-        if (Physics.Raycast(ray, out RaycastHit hit, 999f, aimLayer))
+        if (Physics.Raycast(ray, out RaycastHit hit, shootRange, aimLayer))
         {
             aimTarget.position = hit.point;
+        }
+        else
+        {
+            aimTarget.position = ray.origin + ray.direction * shootRange;
         }
     }
 
