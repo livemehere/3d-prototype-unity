@@ -4,7 +4,8 @@ using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
-    // Timers
+
+    private int UPPER_LAYER = 1;
     
     [Header("Game")]
     public int score;
@@ -209,5 +210,16 @@ public class PlayerController : MonoBehaviour
         
         // apply gravity
         verticalVelocity += gravity * Time.deltaTime; 
+    }
+
+    private void OnAim(InputValue value)
+    {
+        var isPressed = value.Get<float>() > 0.5f;
+        animator.SetBool("isAiming", isPressed);
+    }
+
+    private void OnAttack()
+    {
+        animator.Play("Armature|Pistol_Shoot",UPPER_LAYER, 0);
     }
 }
