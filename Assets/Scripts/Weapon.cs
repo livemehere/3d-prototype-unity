@@ -5,6 +5,7 @@ public class Weapon : MonoBehaviour
     public Transform muzzle;
     public GameObject bulletPrefab;
     public float bulletSpeed = 30f;
+    public ParticleSystem flash;
 
     public void Fire(Vector3 targetPoint)
     {
@@ -12,5 +13,6 @@ public class Weapon : MonoBehaviour
         GameObject bullet = Instantiate(bulletPrefab, muzzle.position, Quaternion.LookRotation(dir));
         Rigidbody rb = bullet.GetComponent<Rigidbody>();
         rb.linearVelocity = dir * bulletSpeed;
+        flash.Play();
     }
 }
