@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 2777118932745630653}
   - component: {fileID: 609095764361621344}
   - component: {fileID: 2950183096213091357}
-  - component: {fileID: 2867185778261549808}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -68,6 +67,12 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   cameraTransform: {fileID: 0}
+  aimLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  aimTarget: {fileID: 0}
+  startWeaponPrefab: {fileID: 0}
+  rightHandSocket: {fileID: 0}
 --- !u!114 &609095764361621344
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -115,33 +120,6 @@ MonoBehaviour:
   mouseSensitivity: 0.2
   maxPitch: 60
   minPitch: -20
---- !u!54 &2867185778261549808
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 500045532088338576}
-  serializedVersion: 5
-  m_Mass: 5
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 1
-  m_IsKinematic: 0
-  m_Interpolate: 1
-  m_Constraints: 112
-  m_CollisionDetection: 0
 --- !u!1 &3762808679951283236
 GameObject:
   m_ObjectHideFlags: 0
@@ -208,7 +186,6 @@ GameObject:
   - component: {fileID: 7103056813610468740}
   - component: {fileID: 2905755626962311551}
   - component: {fileID: 1604050281929874386}
-  - component: {fileID: 3071666130312139160}
   m_Layer: 0
   m_Name: Cube
   m_TagString: Untagged
@@ -288,27 +265,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &3071666130312139160
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6459398566150432008}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &8856646318610046613
 GameObject:
   m_ObjectHideFlags: 0

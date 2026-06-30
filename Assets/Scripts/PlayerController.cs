@@ -4,52 +4,67 @@ using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
-
     private int UPPER_LAYER = 1;
-    
-    [Header("Game")]
-    public int score;
+
+    [Header("Game")] public int score;
     public TextMeshProUGUI scoreText;
     public TextMeshProUGUI finishText;
 
-    [Header("Movement")]
-    public float speed;
+    [Header("Movement")] public float speed;
     public float moveSpeed = 2f;
     public float sprintSpeed = 10f;
     public float rotationSmoothTime = 0.2f;
     public float speedSmoothTime = 0.1f;
 
-    [Header("Jump")]
-    public float coyoteTime = 0.2f;
+    [Header("Jump")] public float coyoteTime = 0.2f;
     public float jumpHeight = 2f;
     public int jumpCount = 1;
     private int jumpCounter;
     private float coyoteTimer;
 
-    [Header("Gravity")]
-    public float gravity = -15.0f;
+    [Header("Gravity")] public float gravity = -15.0f;
     public float fallTimeout = 0.15f;
     private float verticalVelocity;
     private float fallTimer;
     private bool isGrounded;
     private bool wasGrounded;
-    
+
     // drag and drop
     [SerializeField] private Transform groundCheck;
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private Transform cameraTransform;
-    
-    [Header("Aim")]
-    [SerializeField] private LayerMask aimLayer;
+
+    [Header("Aim")] [SerializeField] private LayerMask aimLayer;
     [SerializeField] private Transform aimTarget;
+    private bool isAiming;
+
+    [Header("Weapon")] public GameObject startWeaponPrefab;
+    public Transform rightHandSocket;
+    private Weapon currentWeapon;
 
     // user input state
     private Vector2 input;
     private bool isSprinting;
-    
+
     // search from self
     private Animator animator;
     private CharacterController controller;
+
+    private void EquipWeapon(GameObject weaponPrefab)
+    {
+        if (currentWeapon)
+        {
+            Destroy(currentWeapon.gameObject);
+        }
+
+        GameObject weaponObj = Instantiate(
+            weaponPrefab,
+            rightHandSocket.position,
+            rightHandSocket.rotation,
+            rightHandSocket
+        );
+        currentWeapon = weaponObj.GetComponent<Weapon>();
+    }
 
     private void Start()
     {
@@ -57,6 +72,7 @@ public class PlayerController : MonoBehaviour
         animator = GetComponent<Animator>();
         score = 0;
         finishText.gameObject.SetActive(false);
+        EquipWeapon(startWeaponPrefab);
     }
 
     private void Update()
@@ -69,9 +85,8 @@ public class PlayerController : MonoBehaviour
         Ray ray = Camera.main.ScreenPointToRay(screenCenterPoint);
         if (Physics.Raycast(ray, out RaycastHit hit, 999f, aimLayer))
         {
-           aimTarget.position = hit.point; 
+            aimTarget.position = hit.point;
         }
-
     }
 
     private void OnDrawGizmos()
@@ -126,15 +141,16 @@ public class PlayerController : MonoBehaviour
     {
         if (jumpCounter == jumpCount)
         {
-           // first jump 
-           if (coyoteTimer > 0f)
-           {
-               ApplyJump();
-               coyoteTimer = 0f;
-               jumpCounter -= 1;
-               animator.SetTrigger("jumpTrigger");
-           }
-        } else if (jumpCounter > 0)
+            // first jump 
+            if (coyoteTimer > 0f)
+            {
+                ApplyJump();
+                coyoteTimer = 0f;
+                jumpCounter -= 1;
+                animator.SetTrigger("jumpTrigger");
+            }
+        }
+        else if (jumpCounter > 0)
         {
             // remain jump
             ApplyJump();
@@ -144,7 +160,7 @@ public class PlayerController : MonoBehaviour
 
     private void GroundCheck()
     {
-        isGrounded = Physics.CheckSphere(groundCheck.position, 0.25f, groundLayer,  QueryTriggerInteraction.Ignore);
+        isGrounded = Physics.CheckSphere(groundCheck.position, 0.25f, groundLayer, QueryTriggerInteraction.Ignore);
         animator.SetBool("isGrounded", isGrounded);
     }
 
@@ -153,7 +169,7 @@ public class PlayerController : MonoBehaviour
         // animate blending
         var animateTargetSpeed = input.magnitude * (isSprinting ? 2f : 1f);
         animator.SetFloat("speed", animateTargetSpeed, 0.1f, Time.deltaTime);
-        
+
         // user input
         var forward = cameraTransform.forward;
         var right = cameraTransform.right;
@@ -164,11 +180,28 @@ public class PlayerController : MonoBehaviour
         var move = forward * input.y + right * input.x;
 
         // turn 
-        if (move != Vector3.zero)
+        if (isAiming)
+        {
+            Vector3 aimDir = aimTarget.position - transform.position;
+            aimDir.y = 0f;
+            aimDir.Normalize();
+
+            if (aimDir != Vector3.zero)
+            {
+                var targetRotation = Quaternion.LookRotation(aimDir);
+                transform.rotation = Quaternion.Slerp(
+                    transform.rotation,
+                    targetRotation,
+                    rotationSmoothTime
+                );
+            }
+        }
+        else if (move != Vector3.zero)
         {
             var targetRotation = Quaternion.LookRotation(move);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSmoothTime);
         }
+
 
         // move
         var targetSpeed = isSprinting ? sprintSpeed : moveSpeed;
@@ -176,8 +209,9 @@ public class PlayerController : MonoBehaviour
         {
             targetSpeed = 0f;
         }
+
         speed = Mathf.Lerp(speed, targetSpeed, speedSmoothTime);
-        controller.Move( (move * (speed * Time.deltaTime)) + new Vector3(0f, verticalVelocity, 0f) * Time.deltaTime);
+        controller.Move((move * (speed * Time.deltaTime)) + new Vector3(0f, verticalVelocity, 0f) * Time.deltaTime);
     }
 
     private void GravityAndVerticalState()
@@ -189,17 +223,17 @@ public class PlayerController : MonoBehaviour
             {
                 jumpCounter = jumpCount;
             }
-            
+
             coyoteTimer = coyoteTime;
             fallTimer = fallTimeout;
             animator.SetBool("isFalling", false);
 
-           if (verticalVelocity < 0f)
-           {
-               verticalVelocity = -2.0f;
-           }
-           
-           wasGrounded = false;
+            if (verticalVelocity < 0f)
+            {
+                verticalVelocity = -2.0f;
+            }
+
+            wasGrounded = false;
         }
         else
         {
@@ -208,7 +242,7 @@ public class PlayerController : MonoBehaviour
             {
                 coyoteTimer -= Time.deltaTime;
             }
-            
+
             // for slop
             if (fallTimer > 0f)
             {
@@ -219,19 +253,24 @@ public class PlayerController : MonoBehaviour
                 animator.SetBool("isFalling", true);
             }
         }
-        
+
         // apply gravity
-        verticalVelocity += gravity * Time.deltaTime; 
+        verticalVelocity += gravity * Time.deltaTime;
     }
 
     private void OnAim(InputValue value)
     {
         var isPressed = value.Get<float>() > 0.5f;
         animator.SetBool("isAiming", isPressed);
+        isAiming = isPressed;
     }
 
     private void OnAttack()
     {
-        animator.Play("Armature|Pistol_Shoot",UPPER_LAYER, 0);
+        if (currentWeapon)
+        {
+            animator.Play("Armature|Pistol_Shoot", UPPER_LAYER, 0);
+            currentWeapon.Fire(aimTarget.transform.position);
+        }
     }
 }
