@@ -272,7 +272,7 @@ public class PlayerController : MonoBehaviour
 
     private void OnAttack()
     {
-        if (currentWeapon)
+        if (currentWeapon && isAiming)
         {
             animator.Play("Armature|Pistol_Shoot", UPPER_LAYER, 0);
             currentWeapon.Fire(aimTarget.transform.position);
