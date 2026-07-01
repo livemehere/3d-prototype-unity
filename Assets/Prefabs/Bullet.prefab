@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 3608559472756487409}
   - component: {fileID: 9220723159418310101}
   - component: {fileID: 2203415178922724860}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Bullet
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -114,7 +114,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.5
+  m_Radius: 1
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!54 &3608559472756487409
 Rigidbody:
@@ -140,9 +140,9 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 0
   m_IsKinematic: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 0
-  m_CollisionDetection: 0
+  m_CollisionDetection: 2
 --- !u!114 &9220723159418310101
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -155,8 +155,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 91fc809eea7b74a4ab6ade9fb9006b09, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Bullet
+  damage: 1
   lifetime: 3
   knockbackForce: 1
+  particle: {fileID: 2824729908971236686, guid: 73c96b4760c224359b03cf939dd3b5ea, type: 3}
 --- !u!96 &2203415178922724860
 TrailRenderer:
   serializedVersion: 4
@@ -278,6 +280,14 @@ PrefabInstance:
     - target: {fileID: 100000, guid: 1319cfeb42068a446bc5d43ef1562670, type: 3}
       propertyPath: m_Name
       value: 45ACP Bullet
+      objectReference: {fileID: 0}
+    - target: {fileID: 100000, guid: 1319cfeb42068a446bc5d43ef1562670, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 100002, guid: 1319cfeb42068a446bc5d43ef1562670, type: 3}
+      propertyPath: m_Layer
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 1319cfeb42068a446bc5d43ef1562670, type: 3}
       propertyPath: m_LocalScale.x
