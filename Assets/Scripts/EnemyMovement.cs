@@ -4,6 +4,7 @@ using UnityEngine.AI;
 public class EnemyMovement : MonoBehaviour
 {
     public Transform player;
+    public Animator animator;
     [SerializeField] private float knockbackDamping = 8f;
     [SerializeField] private float minKnockbackSpeed = 0.05f;
 
@@ -14,6 +15,7 @@ public class EnemyMovement : MonoBehaviour
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
+        animator = GetComponent<Animator>();
     }
 
     // Update is called once per frame
@@ -42,5 +44,6 @@ public class EnemyMovement : MonoBehaviour
     public void Knockback(Vector3 dir, float force)
     {
         knockbackVelocity = dir.normalized * force;
+        animator.Play("Armature|Hit_Chest", 0, 0);
     }
 }
