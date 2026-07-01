@@ -1,8 +1,10 @@
 using UnityEngine;
+using System;
 
 public class Heath : MonoBehaviour
 {
     public int hp = 3;
+    public event Action OnDied;
 
     public void TakeDamage(int damage)
     {
@@ -15,6 +17,7 @@ public class Heath : MonoBehaviour
 
     void Die()
     {
+        OnDied?.Invoke();
         Destroy(gameObject);
     }
 }
